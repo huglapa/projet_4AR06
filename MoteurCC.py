@@ -116,7 +116,6 @@ time2 = simulation_induct(mot2, step, duration,1)
 time3 = simulation_PROP(mot3, step, duration, vit, prop)
 time4 = simulation_induct(mot4, step, duration,1)
 
-
 plt.subplot(2, 1, 1)
 plt.plot(time, mot1.vitesse)
 plt.title('Simulation 1')
