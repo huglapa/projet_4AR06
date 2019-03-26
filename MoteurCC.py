@@ -21,35 +21,35 @@ class MoteurCC(object):
 
 
     def EqElec(self, tension):
-        # Equation electrique : Um(t) = E(t) + R*i(t)
-        # Hypothese : inductance L = 0
-        # Simulation avec tension Um en entrée et courant i en sortie.
+        """Equation electrique : Um(t) = E(t) + R*i(t)
+         Hypothese : inductance L = 0
+         Simulation avec tension Um en entrée et courant i en sortie."""
 
         courant_i = (tension-self.const_fcem*self.vitesse[-1])/self.resistance
         self.courant.append(courant_i)
 
     def EqElecAvecL(self, step, tension):
-        # Equation electrique : Um(t) = E(t) + R*i(t) + L*(di(t)/dt)
-        # Simulation avec tension Um en entrée et courant i en sortie.
+        """ Equation electrique : Um(t) = E(t) + R*i(t) + L*(di(t)/dt)
+         Simulation avec tension Um en entrée et courant i en sortie."""
 
         courant_i = (step/self.inductance)*tension-self.const_fcem*self.vitesse[-1]+self.courant[-1]*\
                     (self.inductance/step-self.resistance)
         self.courant.append(courant_i)
 
     def EqMoteur(self):
-        # Equation du moteur : gamma(t) = k_c * i(t)
+        """ Equation du moteur : gamma(t) = k_c * i(t)"""
         couple_gamma = self.const_couple*self.courant[-1]
         self.couple.append(couple_gamma)
 
     def EqMeca(self, step):
-        # Equation mecanique : J*(dV(t)/dt)+f*V(t) = gamma(t)
-        # avec V(t) ==> vitesse de rotation omega du moteur
-        # simulation avec couple gamma en entrée et vitesse omega en sortie
+        """Equation mecanique : J*(dV(t)/dt)+f*V(t) = gamma(t)
+        avec V(t) ==> vitesse de rotation omega du moteur
+        simulation avec couple gamma en entrée et vitesse omega en sortie"""
         vitesse_suivante = (step/self.inertie)*self.couple[-1]+self.vitesse[-1]*(1-self.frot_visq*(step/self.inertie))
         self.vitesse.append(vitesse_suivante)
 
     def analytical(self, t, tension):
-        # solution analytique du problème sous l'hypothèse L=0
+        """solution analytique du problème sous l'hypothèse L=0"""
         K = self.const_couple/(self.const_fcem * self.const_couple + self.resistance * self.frot_visq)
         tau = self.resistance * self.inertie / (self.const_fcem * self.const_couple + self.resistance * self.frot_visq)
         speed = K*(1-np.exp(-t/tau))*tension
@@ -102,7 +102,7 @@ def simulation_induct(moteur, dt, duree, tens):
     return t
 
 vit = 150
-prop = 15
+prop = 150
 step = 0.01
 duration = 1
 
