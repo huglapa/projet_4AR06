@@ -1,6 +1,3 @@
-#class Robot:
-
-
 import numpy as np
 from math import pi, sin, cos
 from matplotlib import pyplot as plt
@@ -15,7 +12,7 @@ from pygame.time import Clock as pygClock
 class Kobuki(object):
     """Robot Mobile"""
 
-    def __init__(self, rayon=0.075, distance=0.35, pos=V3D(), ori=0, nom='tortue',c='green'):
+    def __init__(self, rayon=0.075, distance=0.35, pos=V3D(), ori=0, nom='tortue', c='green'):
 
         self.pos = [pos]
         self.dist = distance    # dist entre les roues
@@ -27,7 +24,6 @@ class Kobuki(object):
         self.nom = nom
         self.color = c
 
-
     def __str__(self):
         msg = 'Tortue(' + str(self.pos[-1]) + ',' + ')'
         return msg
@@ -36,7 +32,7 @@ class Kobuki(object):
         msg = 'Tortue(' + str(self.pos[-1]) + ',' + ')'
         return msg
 
-    def getSpeed(self, dt,vg=0,vd=0):
+    def getSpeed(self, dt, vg=0, vd=0):
 
         vit_rot = (self.r/self.dist)*(vd - vg)
         vit_trans = (self.r/2)*(vg + vd)
@@ -63,7 +59,7 @@ class Kobuki(object):
         angle = self.ori[-1] - np.arctan2(dep_y, dep_x)
         angle = self.ori[-1] - angle
         self.ori.append(angle)
-        self.pos.append(V3D(pos_x,pos_y))
+        self.pos.append(V3D(pos_x, pos_y))
 
     def deplacement_random(self):
         seed(a=None, version=2)
@@ -77,7 +73,7 @@ class Kobuki(object):
         for i in range(0,len(self.pos)):
             trajx.append(self.pos[i].x)
             trajy.append(self.pos[i].y)
-        plt.plot(trajx, trajy)#color=self.color)
+        plt.plot(trajx, trajy)  # color=self.color)
         plt.show()
 
 
@@ -92,30 +88,43 @@ class Simulateur(object):
 
     def removeKobuki(self, name):
         for r in self.robots:
-            if r.nom == nom:
+            if r.nom == name:
                 self.robots.remove(r)
             else:
                 print('No Kobuki named ' + name + ' in simulateur ' + self.nom + '.')
 
-    def controlRoues(self, name, dt, vg, vd):
+    def controlRoues(self, name, step, vg, vd):
         for r in self.robots:
             if r.nom == name:
-                r.getSpeed(dt, vg, vd)
+                r.getSpeed(step, vg, vd)
             else:
                 print('No Kobuki named ' + name + ' in simulateur ' + self.nom + '.')
 
-    def controlRouesRand(self, step, duree):
+    def trajSinus(self, step, duree, a=1, omega=1):
+        """trajectoire de la forme A *sin(omega*t)"""
         t = [0]
         while t[-1] < duree:
-            t.append(t[-1] + step)
-            for r in plage.robots:
+            for r in self.robots:
+                vg = a * abs(sin(omega * t[-1]))
+                vd = a * abs(sin((pi/2*omega)+omega * t[-1]))
+                r.getSpeed(step, vg, vd)
+            t.append(t[-1]+step)
+
+    def controlRouesRand(self, step, duree):
+        t = [0]
+        i=0
+        while t[-1] < duree:
+            print(i)
+            i+=1
+            for r in self.robots:
 
                 seed(a=None, version=2)
                 g = randint(-2, 3)
                 d = randint(-2, 3)
 
-                plage.controlRoues(r.nom, step, g, d)
-        return t
+                self.controlRoues(r.nom, step, g, d)
+        t.append(t[-1] + step)
+#        return t
 
     def trace(self):
         plt.figure('Plan de ' + self.nom)
@@ -133,41 +142,18 @@ class Simulateur(object):
     #     for i in range (1,n):
 
 
-ahah = Kobuki(nom='ahah', c='blue')
-baba = Kobuki(nom='baba', c='red')
-coco = Kobuki(nom='coco', c='black')
-kyky = Kobuki(nom='kyky')
+rob1 = Kobuki(nom='rob1', c='blue')
+rob2 = Kobuki(nom='rob2', c='red')
+rob3 = Kobuki(nom='rob3', c='black')
+rob4 = Kobuki(nom='rob4', c='green')
 
-jojo = Kobuki(nom='jojo', c='pink')
-stress = Kobuki(nom='stress', c='purple')
-lovis = Kobuki(nom='lovis', c='orange')
+simu = Simulateur('simu')
 
-mehdi = Kobuki(nom='mehdi', c='magenta')
-emiland = Kobuki(nom='emiland', c='yellow')
+simu.addKobuki(rob1)
 
-koba = Kobuki(nom='koba', c='cyan')
+dt = 0.01
+time = 5
 
-
-
-
-plage = Simulateur('playa')
-
-plage.addKobuki(ahah)
-plage.addKobuki(baba)
-plage.addKobuki(coco)
-plage.addKobuki(kyky)
-
-# plage.addKobuki(jojo)
-# plage.addKobuki(stress)
-# plage.addKobuki(lovis)
-# plage.addKobuki(mehdi)
-# plage.addKobuki(emiland)
-# plage.addKobuki(koba)
-
-dt =0.001
-time = 100
-
-plage.controlRouesRand(dt, time)
-
-
-plage.trace()
+#simu.controlRouesRand(dt, time)
+simu.trajSinus(dt, time)
+simu.trace()

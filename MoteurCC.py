@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 class MoteurCC(object):
     """Modèle numérique du moteur à courant continu, avec Um comme entrée,
         et comme vitesse omega et couple gamma en sortie"""
-    def __init__(self, Um, gamma=0, omega=0, R=1, L=0.001, kc=0.01, ke=0.01, J=0.01, f=0.1):
+    def __init__(self, Um, gamma=0, omega=0., R=1, L=0.001, kc=0.01, ke=0.01, J=0.01, f=0.1):
         self.tension = Um
         self.resistance = R
         self.inductance = L
@@ -18,7 +18,6 @@ class MoteurCC(object):
         self.vitesse = [omega]
         self.courant = [0]
         self.vitesseAna = [0]
-
 
     def EqElec(self, tension):
         """Equation electrique : Um(t) = E(t) + R*i(t)
