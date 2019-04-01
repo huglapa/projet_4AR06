@@ -36,21 +36,6 @@ class Kobuki(object):
         msg = 'Kobuki(' + str(self.pos[-1]) + ',' + ')'
         return msg
 
-    def getSpeed(self, dt, vg=0, vd=0):
-
-
-
-        vit_rot = (self.r/self.dist)*(vd - vg)
-        vit_trans = (self.r/2)*(vg + vd)
-        # self.vit_r = vit_rot
-        # self.vit_t = vit_trans
-
-        self.ori.append(self.ori[-1]+dt*vit_rot)
-
-        dx = self.pos[-1].x+dt*vit_trans*cos(self.ori[-1])
-        dy = self.pos[-1].y+dt*vit_trans*sin(self.ori[-1])
-        self.pos.append(V3D(dx,dy))
-
     def mcd(self, vg=0, vd=0):
         vit_roues = np.array((vd, vg))
         vit_robot = np.dot(self.jacobian, vit_roues)
@@ -64,7 +49,7 @@ class Kobuki(object):
         return vit_roues
 
     def simulMCD(self, dt, vg, vd):
-        vit_rob = self.mcd(vg,vd)
+        vit_rob = self.mcd(vg, vd)
         self.ori.append(self.ori[-1]+dt*vit_rob[1])
 
         dx = self.pos[-1].x+dt*vit_rob[0]*cos(self.ori[-1])
@@ -73,39 +58,16 @@ class Kobuki(object):
 
     def simulMCI(self, dt, vt, vr):
         vit_roues = self.mci(vt, vr)
-
+        vit_rob = np.array((vt, vr))
         self.ori.append(self.ori[-1]+dt*vit_rob[1])
 
         dx = self.pos[-1].x+dt*vit_rob[0]*cos(self.ori[-1])
         dy = self.pos[-1].y+dt*vit_rob[0]*sin(self.ori[-1])
         self.pos.append(V3D(dx, dy))
 
-
-    # def getPos(self,dt):
-    #     self.ori.append(self.ori[-1]+dt*self.vit_r)
-    #     self.pos.append(self.pos[-1]+dt*self.vit_t)
-
-    def deplacement(self, obj_x, obj_y):
-
-        dep_x = obj_x - self.pos[-1].x
-        dep_y = obj_y - self.pos[-1].y
-        pos_x = self.pos[-1].x + dep_x
-        pos_y = self.pos[-1].y + dep_y
-
-        angle = self.ori[-1] - np.arctan2(dep_y, dep_x)
-        angle = self.ori[-1] - angle
-        self.ori.append(angle)
-        self.pos.append(V3D(pos_x, pos_y))
-
-    def deplacement_random(self):
-        seed(a=None, version=2)
-        x = random()
-        y = random()
-        self.deplacement(5*x, 5*y)
-
     def trajectoire(self):
-        trajx=[]
-        trajy=[]
+        trajx = []
+        trajy = []
         for i in range(0,len(self.pos)):
             trajx.append(self.pos[i].x)
             trajy.append(self.pos[i].y)
@@ -129,6 +91,10 @@ class Simulateur(object):
             else:
                 print('No Kobuki named ' + name + ' in simulateur ' + self.nom + '.')
 
+
+    # def createNkobuki(self,n):
+    #     for i in range (1,n):
+
     def trace(self):
         plt.figure('Plan de ' + self.nom)
         for t in self.robots:
@@ -148,7 +114,7 @@ class Simulateur(object):
             else:
                 print('No Kobuki named ' + name + ' in simulateur ' + self.nom + '.')
 
-    def trajSinus(self, step, duree, a=1, omega=1):
+    def trajSinMCD(self, step, duree, a=1, omega=1):
         """trajectoire de la forme A *sin(omega*t)"""
         t = [0]
 
@@ -157,6 +123,15 @@ class Simulateur(object):
                 vg = a * abs(sin(omega * t[-1]))
                 vd = a * abs(sin((pi/2*omega)+omega * t[-1]))
                 r.simulMCD(step, vg, vd)
+            t.append(t[-1]+step)
+
+    def trajSinMCI(self,step, duree, a=pi/2, omega=1):
+        t = [0]
+        while t[-1] < duree:
+            for r in self.robots:
+                vr = a*sin(omega*t[-1])
+                vt = 1
+                r.simulMCI(step, vt, vr)
             t.append(t[-1]+step)
 
     def controlRouesRand(self, step, duree):
@@ -183,8 +158,6 @@ class Simulateur(object):
 
 #        return t
 
-    # def createNkobuki(self,n):
-    #     for i in range (1,n):
 
 
 rob1 = Kobuki(nom='rob1', c='red')
@@ -193,12 +166,15 @@ rob3 = Kobuki(nom='rob3', c='green')
 rob4 = Kobuki(nom='rob4', c='black')
 
 simu = Simulateur('simu')
+ehou2 = Simulateur('simu2')
 
 simu.addKobuki(rob1)
-
+#simu2.addKobuki(rob2)
 dt = 0.01
-time = 5
+time = 20
 
 #simu.controlRouesRand(dt, time)
-simu.trajSinus(dt, time)
+simu.trajSinMCI(dt,time)
 simu.trace()
+
+
